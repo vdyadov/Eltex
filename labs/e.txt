@@ -1,5 +1,0 @@
-  PID TTY          TIME CMD
- 3578 pts/0    00:00:00 sudo
- 3590 pts/0    00:00:00 su
- 3603 pts/0    00:00:00 bash
- 4302 pts/0    00:00:00 ps
