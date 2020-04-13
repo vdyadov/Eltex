@@ -21,13 +21,14 @@ void *reverse_func(void* arg){
     pthread_exit((void*)str);
 }
 
-int main(int argc, char **argv){
+int main(int argc, char *argv[]){
     int result;
     pthread_t thread[argc];
     void *status[argc];
 
     for (int i = 1; i < argc; i++){
-        result = pthread_create(&thread[i], NULL, reverse_func, &argv[i]);
+        printf("Слово[%d]: %s\n", i, argv[i]);
+        result = pthread_create(&thread[i], NULL, reverse_func, argv[i]);
 
         if (result != 0){
             perror("pthread_create");
@@ -42,7 +43,7 @@ int main(int argc, char **argv){
             perror("pthread_create");
             return EXIT_FAILURE;
         }else {
-			printf("square[%d]=%s\n", i,  ((char*)status[i]));
+			printf("Слово[%d] наоборот: %s\n", i,  ((char*)status[i]));
 		}
 		// free(status[i]);
     }
