@@ -1,0 +1,38 @@
+Apr 20 14:55:48.487 HYPERVISOR: Release 0.2.21-amd64/Linux (tag 2019071212)
+Apr 20 14:55:48.487 HYPERVISOR: Started on IP = localhost, TCP port = 54489.
+Apr 20 14:55:48.498 HYPERVISOR: exec_cmd: hypervisor version 
+Apr 20 14:55:48.498 HYPERVISOR: exec_cmd: hypervisor working_dir /home/vlad/GNS3/projects/lab2/project-files/dynamips 
+Apr 20 14:55:48.498 GENERAL: working_dir=/home/vlad/GNS3/projects/lab2/project-files/dynamips
+Apr 20 14:55:48.498 HYPERVISOR: exec_cmd: hypervisor working_dir /home/vlad/GNS3/projects/lab2/project-files/dynamips/80464bd6-8e79-4e8a-a890-7c6234fbd371 
+Apr 20 14:55:48.498 GENERAL: working_dir=/home/vlad/GNS3/projects/lab2/project-files/dynamips/80464bd6-8e79-4e8a-a890-7c6234fbd371
+Apr 20 14:55:48.498 HYPERVISOR: exec_cmd: vm create R5 5 c3600 
+Apr 20 14:55:48.499 VM: VM R5 created.
+Apr 20 14:55:48.499 HYPERVISOR: exec_cmd: vm set_con_tcp_port R5 5004 
+Apr 20 14:55:48.499 HYPERVISOR: exec_cmd: c3600 get_mac_addr R5 
+Apr 20 14:55:48.499 HYPERVISOR: exec_cmd: vm get_status R5 
+Apr 20 14:55:48.500 HYPERVISOR: exec_cmd: vm set_idle_pc R5 0x6057727c 
+Apr 20 14:55:48.500 HYPERVISOR: exec_cmd: vm set_ios R5 /home/vlad/GNS3/images/IOS/c3640-ik9s-mz.123-24.bin 
+Apr 20 14:55:48.500 HYPERVISOR: exec_cmd: c3600 set_mac_addr R5 cc05.0c01.0000 
+Apr 20 14:55:48.500 HYPERVISOR: exec_cmd: vm set_nvram R5 256 
+Apr 20 14:55:48.501 HYPERVISOR: exec_cmd: vm set_ram R5 192 
+Apr 20 14:55:48.501 HYPERVISOR: exec_cmd: vm get_status R5 
+Apr 20 14:55:48.501 HYPERVISOR: exec_cmd: vm slot_add_binding R5 0 0 NM-1FE-TX 
+Apr 20 14:55:48.501 HYPERVISOR: exec_cmd: vm get_status R5 
+Apr 20 14:55:48.501 HYPERVISOR: exec_cmd: vm slot_add_binding R5 1 0 NM-1FE-TX 
+Apr 20 14:55:48.502 HYPERVISOR: exec_cmd: vm get_status R5 
+Apr 20 14:55:48.502 HYPERVISOR: exec_cmd: vm slot_add_binding R5 2 0 NM-1FE-TX 
+Apr 20 14:55:48.927 HYPERVISOR: exec_cmd: nio create_udp udp-b955e9c6-db02-412f-98db-49a0c25891b9 10004 127.0.0.1 10005 
+Apr 20 14:55:49.149 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R5 0 0 udp-b955e9c6-db02-412f-98db-49a0c25891b9 
+Apr 20 14:55:49.150 HYPERVISOR: exec_cmd: vm get_status R5 
+Apr 20 14:55:49.218 HYPERVISOR: exec_cmd: nio create_udp udp-e1018852-92cb-4d19-9e1a-089056f4ee6b 10008 127.0.0.1 10009 
+Apr 20 14:55:49.220 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R5 1 0 udp-e1018852-92cb-4d19-9e1a-089056f4ee6b 
+Apr 20 14:55:49.220 HYPERVISOR: exec_cmd: vm get_status R5 
+Apr 20 14:56:11.841 HYPERVISOR: exec_cmd: vm set_ghost_status R5 2 
+Apr 20 14:56:11.841 HYPERVISOR: exec_cmd: vm set_ghost_file R5 /home/vlad/GNS3/projects/lab2/project-files/dynamips/c3640-ik9s-mz.123-24.bin-192.ghost 
+Apr 20 14:56:11.841 HYPERVISOR: exec_cmd: vm get_status R5 
+Apr 20 14:56:11.841 HYPERVISOR: exec_cmd: vm set_config R5 configs/i5_startup-config.cfg 
+Apr 20 14:56:11.841 HYPERVISOR: exec_cmd: vm start R5 
+Apr 20 14:56:42.080 HYPERVISOR: exec_cmd: vm extract_config R5 
+Apr 20 17:47:16.209 HYPERVISOR: exec_cmd: vm set_ghost_status R5 2 
+Apr 20 17:47:16.210 HYPERVISOR: exec_cmd: vm set_ghost_file R5 /home/vlad/GNS3/projects/lab2/project-files/dynamips/c3640-ik9s-mz.123-24.bin-192.ghost 
+Apr 20 17:47:16.210 HYPERVISOR: exec_cmd: vm get_status R5 

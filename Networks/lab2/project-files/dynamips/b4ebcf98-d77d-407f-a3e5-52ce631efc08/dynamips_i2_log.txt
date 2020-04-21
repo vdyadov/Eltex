@@ -1,0 +1,53 @@
+Apr 20 14:55:48.335 HYPERVISOR: Release 0.2.21-amd64/Linux (tag 2019071212)
+Apr 20 14:55:48.335 HYPERVISOR: Started on IP = localhost, TCP port = 53835.
+Apr 20 14:55:48.349 HYPERVISOR: exec_cmd: hypervisor version 
+Apr 20 14:55:48.349 HYPERVISOR: exec_cmd: hypervisor working_dir /home/vlad/GNS3/projects/lab2/project-files/dynamips 
+Apr 20 14:55:48.349 GENERAL: working_dir=/home/vlad/GNS3/projects/lab2/project-files/dynamips
+Apr 20 14:55:48.350 HYPERVISOR: exec_cmd: hypervisor working_dir /home/vlad/GNS3/projects/lab2/project-files/dynamips/b4ebcf98-d77d-407f-a3e5-52ce631efc08 
+Apr 20 14:55:48.350 GENERAL: working_dir=/home/vlad/GNS3/projects/lab2/project-files/dynamips/b4ebcf98-d77d-407f-a3e5-52ce631efc08
+Apr 20 14:55:48.350 HYPERVISOR: exec_cmd: vm create R2 2 c3600 
+Apr 20 14:55:48.350 VM: VM R2 created.
+Apr 20 14:55:48.351 HYPERVISOR: exec_cmd: vm set_con_tcp_port R2 5001 
+Apr 20 14:55:48.351 HYPERVISOR: exec_cmd: c3600 get_mac_addr R2 
+Apr 20 14:55:48.352 HYPERVISOR: exec_cmd: vm get_status R2 
+Apr 20 14:55:48.353 HYPERVISOR: exec_cmd: vm set_idle_pc R2 0x6057727c 
+Apr 20 14:55:48.353 HYPERVISOR: exec_cmd: vm set_ios R2 /home/vlad/GNS3/images/IOS/c3640-ik9s-mz.123-24.bin 
+Apr 20 14:55:48.354 HYPERVISOR: exec_cmd: c3600 set_mac_addr R2 cc02.0bd4.0000 
+Apr 20 14:55:48.354 HYPERVISOR: exec_cmd: vm set_nvram R2 256 
+Apr 20 14:55:48.355 HYPERVISOR: exec_cmd: vm set_ram R2 192 
+Apr 20 14:55:48.355 HYPERVISOR: exec_cmd: vm get_status R2 
+Apr 20 14:55:48.355 HYPERVISOR: exec_cmd: vm slot_add_binding R2 0 0 NM-1FE-TX 
+Apr 20 14:55:48.356 HYPERVISOR: exec_cmd: vm get_status R2 
+Apr 20 14:55:48.356 HYPERVISOR: exec_cmd: vm slot_add_binding R2 1 0 NM-1FE-TX 
+Apr 20 14:55:48.356 HYPERVISOR: exec_cmd: vm get_status R2 
+Apr 20 14:55:48.356 HYPERVISOR: exec_cmd: vm slot_add_binding R2 2 0 NM-1FE-TX 
+Apr 20 14:55:50.068 HYPERVISOR: exec_cmd: nio create_udp udp-4b703420-1e59-4929-a5ac-ead14365a9da 10028 127.0.0.1 10029 
+Apr 20 14:55:50.280 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R2 0 0 udp-4b703420-1e59-4929-a5ac-ead14365a9da 
+Apr 20 14:55:50.281 HYPERVISOR: exec_cmd: vm get_status R2 
+Apr 20 14:55:51.280 HYPERVISOR: exec_cmd: nio create_udp udp-f42ac1d2-ce3a-4a03-ab41-f4d976937f72 10064 127.0.0.1 10065 
+Apr 20 14:55:51.281 HYPERVISOR: exec_cmd: vm slot_add_nio_binding R2 1 0 udp-f42ac1d2-ce3a-4a03-ab41-f4d976937f72 
+Apr 20 14:55:51.281 HYPERVISOR: exec_cmd: vm get_status R2 
+Apr 20 14:55:56.938 HYPERVISOR: exec_cmd: vm create Ghost 0 c3600 
+Apr 20 14:55:56.938 VM: VM Ghost created.
+Apr 20 14:55:56.939 HYPERVISOR: exec_cmd: vm set_ios Ghost /home/vlad/GNS3/images/IOS/c3640-ik9s-mz.123-24.bin 
+Apr 20 14:55:56.940 HYPERVISOR: exec_cmd: vm set_ghost_status Ghost 1 
+Apr 20 14:55:56.940 HYPERVISOR: exec_cmd: vm set_ghost_file Ghost /home/vlad/GNS3/projects/lab2/project-files/dynamips/c3640-ik9s-mz.123-24.bin-192.ghost 
+Apr 20 14:55:56.941 HYPERVISOR: exec_cmd: vm set_ram Ghost 192 
+Apr 20 14:55:56.941 HYPERVISOR: exec_cmd: vm get_status Ghost 
+Apr 20 14:55:56.964 HYPERVISOR: exec_cmd: vm set_config Ghost configs/i0_startup-config.cfg 
+Apr 20 14:55:56.964 HYPERVISOR: exec_cmd: vm start Ghost 
+Apr 20 14:55:57.593 HYPERVISOR: exec_cmd: vm get_status Ghost 
+Apr 20 14:55:57.595 HYPERVISOR: exec_cmd: vm stop Ghost 
+Apr 20 14:55:57.856 VM: VM Ghost shutdown.
+Apr 20 14:55:57.857 HYPERVISOR: exec_cmd: vm extract_config Ghost 
+Apr 20 14:55:57.859 HYPERVISOR: exec_cmd: vm clean_delete Ghost 
+Apr 20 14:55:57.859 VM: VM Ghost destroyed.
+Apr 20 14:55:57.861 HYPERVISOR: exec_cmd: vm set_ghost_status R2 2 
+Apr 20 14:55:57.861 HYPERVISOR: exec_cmd: vm set_ghost_file R2 /home/vlad/GNS3/projects/lab2/project-files/dynamips/c3640-ik9s-mz.123-24.bin-192.ghost 
+Apr 20 14:55:57.862 HYPERVISOR: exec_cmd: vm get_status R2 
+Apr 20 14:55:57.863 HYPERVISOR: exec_cmd: vm set_config R2 configs/i2_startup-config.cfg 
+Apr 20 14:55:57.863 HYPERVISOR: exec_cmd: vm start R2 
+Apr 20 14:56:28.071 HYPERVISOR: exec_cmd: vm extract_config R2 
+Apr 20 17:47:15.876 HYPERVISOR: exec_cmd: vm set_ghost_status R2 2 
+Apr 20 17:47:15.964 HYPERVISOR: exec_cmd: vm set_ghost_file R2 /home/vlad/GNS3/projects/lab2/project-files/dynamips/c3640-ik9s-mz.123-24.bin-192.ghost 
+Apr 20 17:47:15.964 HYPERVISOR: exec_cmd: vm get_status R2 
