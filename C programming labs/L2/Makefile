@@ -8,3 +8,6 @@ main.o: main.c Header.h
 	$(CC) -c -o main.o main.c
 sort.o: sort.c
 	$(CC) -c -o sort.o sort.c
+
+clean:
+	rm run main.o sort.o
