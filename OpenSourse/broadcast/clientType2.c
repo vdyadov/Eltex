@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
         printf("Recived: %s\n", recvString);
 
-        if (!strncmp(recvString, MASSAGE_T2, bytesRcvd))
+        if (!strncmp(recvString, MESSAGE_T2, bytesRcvd))
         {
             int TCPsock;
             struct sockaddr_in TCPServAddr;

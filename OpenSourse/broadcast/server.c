@@ -1,20 +1,23 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
-#include <string.h>
+#include <sys/msg.h>
 
-#include "funcs.h"
+#include "struct.h"
 
-Queue q;
+struct msqid_ds q;
 Msg msg;
 
 int status = 2;
 
 pid_t pidB1, pidB2, pidT1, pidT2;
+
+void DieWithError(char *errorMessage);
 
 void BroadcastClientT1(){
     int sock, broadcastPermission;
@@ -43,13 +46,13 @@ void BroadcastClientT1(){
 
         while (1)
         {
-            int size = q.size;
+            int size = q.msg_qnum;
 
             printf("Queue size: %d\n", size);
 
             if (size < MAX_SIZE_QUEUE)
-                if (sendto(sock, MASSAGE_T1, strlen(MASSAGE_T1), 0, (struct sockaddr *)
-                 &servAddr, sizeof(servAddr)) != strlen(MASSAGE_T1))
+                if (sendto(sock, MESSAGE_T1, strlen(MESSAGE_T1), 0, (struct sockaddr *)
+                 &servAddr, sizeof(servAddr)) != strlen(MESSAGE_T1))
                     DieWithError("sendB1() failed: ");
 
             sleep(WAIT_TIME_BROADCAST_T1);            
@@ -57,7 +60,6 @@ void BroadcastClientT1(){
         close(sock); 
         exit(2);
     }
-    
 }
 
 void BroadcastClientT2(){
@@ -87,11 +89,11 @@ void BroadcastClientT2(){
 
         while (1)
         {
-            int size = q.size;
+            int size = q.msg_qnum;
 
             if (size > 0)
-                if(sendto(sock, MASSAGE_T2, strlen(MASSAGE_T2), 0, (struct sockaddr *)
-                 &servAddr, sizeof(servAddr)) != strlen(MASSAGE_T2))
+                if(sendto(sock, MESSAGE_T2, strlen(MESSAGE_T2), 0, (struct sockaddr *)
+                 &servAddr, sizeof(servAddr)) != strlen(MESSAGE_T2))
                     DieWithError("sendB2() failed:");
             
             sleep(WAIT_TIME_BROADCAST_T2);
@@ -103,7 +105,7 @@ void BroadcastClientT2(){
     
 }
 
-void TCPHandleT1(){
+void TCPHandleT1(int msqid){
     int sockServ, sockClient;
     struct sockaddr_in servAddr, clientAddr;
     int bytesRecv;
@@ -137,12 +139,17 @@ void TCPHandleT1(){
             if ((sockClient = accept(sockServ, (struct sockaddr *) &clientAddr, &clntLen)) < 0)
                 DieWithError("aceptT1() failed:");
             
-            if (q.size < MAX_SIZE_QUEUE)
+            if (q.msg_qnum < MAX_SIZE_QUEUE)
             {
                 if ((bytesRecv = recv(sockClient, &msg, sizeof(msg), 0)) < 0)
                     DieWithError("recvT1() failed:");
+
+                int len = sizeof(msg) - sizeof(long);
+                int snd;
+
+                if ((snd = msgsnd(msqid, &msg, len, 0)) < 0)
+                    DieWithError("msgsnd() failed\n");
                 
-                qPush(&q, msg);
             }
             close(sockClient);
         }
@@ -152,7 +159,7 @@ void TCPHandleT1(){
     
 }
 
-void TCPHandleT2(){
+void TCPHandleT2(int msqid){
     int sockServ, sockClient;
     struct sockaddr_in servAddr, clntAddr;
     unsigned int clntLen;
@@ -184,8 +191,12 @@ void TCPHandleT2(){
             if ((sockClient = accept(sockServ, (struct sockaddr *) &clntAddr, &clntLen)) < 0)
                 DieWithError("acceptT2() failed:");
 
-            if(q.size > 0){
-                qPop(&q, &msg);
+            if(q.msg_qnum > 0){
+                int len = sizeof(msg) - sizeof(long);
+                int rc;
+
+                if ((rc = msgrcv(msqid, &msg, len, 0, 0)) < 0)
+                    DieWithError("msgrcv() failed\n");
 
                 if (recv(sockClient, &msg, sizeof(msg), 0) < 0)
                     DieWithError("recvT2() failed:");
@@ -198,17 +209,22 @@ void TCPHandleT2(){
     
 }
 
-int main(int argc, char *argv[])
-{
-    TCPHandleT1();
+int main(int argc, char *argv[]){
+    int key, msqid;
+
+    if ((key = ftok(".", 'S')) < 0)
+        DieWithError("ftok() failed");
+    
+    if ((msqid = msgget(key, 0666 | IPC_CREAT)) < 0)
+        DieWithError("msgget() failed");
+    
+    TCPHandleT1(msqid);
 
     BroadcastClientT1();
     
-    
-
     BroadcastClientT2();
     
-    TCPHandleT2();
+    TCPHandleT2(msqid);
 
     waitpid(pidB1, &status, 0);
     if (WIFEXITED(status))
@@ -226,15 +242,9 @@ int main(int argc, char *argv[])
     if (WIFEXITED(status))
         printf("process is over, return: %d\n", status);
 
+    if (msgctl(msqid, IPC_RMID, NULL) < 0)
+        DieWithError("msgctl() failed");
     
-
-    
-
-    
-
-    
-
-    // qClear(&q);    
 
     return 0;
 }

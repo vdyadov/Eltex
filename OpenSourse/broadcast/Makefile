@@ -2,7 +2,7 @@ CC = gcc
 TERM = gnome-terminal -e
 
 build: 
-	$(CC) server.c Msg.c queue.c -Wall -o server
+	$(CC) server.c Msg.c -Wall -o server
 	$(CC) clientType1.c Msg.c -Wall -o client1
 	$(CC) clientType2.c Msg.c -Wall -o client2
 

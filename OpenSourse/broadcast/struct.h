@@ -10,8 +10,8 @@
 #define TCPportT1 5550
 #define TCPportT2 5555
 
-#define MASSAGE_T1 "Waiting a massage"
-#define MASSAGE_T2 "Send a massage"
+#define MESSAGE_T1 "Waiting a massage"
+#define MESSAGE_T2 "Send a massage"
 
 #define MAX_SIZE_QUEUE 5
 

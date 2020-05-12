@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
         printf("Recived: %s\n", recvString);
 
-        if (!strncmp(recvString, MASSAGE_T1, bytesRcvd))
+        if (!strncmp(recvString, MESSAGE_T1, bytesRcvd))
         {
             printf("cycles is running\n");
             int TCPsock;
