@@ -11,7 +11,7 @@
 #include "struct.h"
 
 struct msqid_ds q;
-Msg msg;
+// Msg msg;
 
 int status = 2;
 
@@ -48,7 +48,7 @@ void BroadcastClientT1(){
         {
             int size = q.msg_qnum;
 
-            printf("Queue size: %d\n", size);
+            printf("Queue size b1: %d\n", size);
 
             if (size < MAX_SIZE_QUEUE)
                 if (sendto(sock, MESSAGE_T1, strlen(MESSAGE_T1), 0, (struct sockaddr *)
@@ -85,11 +85,13 @@ void BroadcastClientT2(){
         memset(&servAddr, 0, sizeof(servAddr));
         servAddr.sin_family = AF_INET;
         servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port = htonl(BroadcastPortT2);
+        servAddr.sin_port = htons(BroadcastPortT2);
 
         while (1)
         {
             int size = q.msg_qnum;
+
+            printf("Queue size b2: %d\n", size);
 
             if (size > 0)
                 if(sendto(sock, MESSAGE_T2, strlen(MESSAGE_T2), 0, (struct sockaddr *)
@@ -124,7 +126,7 @@ void TCPHandleT1(int msqid){
     
         memset(&servAddr, 0, sizeof(servAddr));
         servAddr.sin_family = AF_INET;
-        servAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+        servAddr.sin_addr.s_addr = inet_addr(servIP);
         servAddr.sin_port = htons(TCPportT1);
 
         if (bind(sockServ, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
@@ -141,7 +143,9 @@ void TCPHandleT1(int msqid){
             
             if (q.msg_qnum < MAX_SIZE_QUEUE)
             {
-                if ((bytesRecv = recv(sockClient, &msg, sizeof(msg), 0)) < 0)
+                Msg msg;
+
+                if ((bytesRecv = recv(sockClient, &msg, sizeof(Msg), 0)) < 0)
                     DieWithError("recvT1() failed:");
 
                 int len = sizeof(msg) - sizeof(long);
@@ -171,35 +175,37 @@ void TCPHandleT2(int msqid){
 
     if (pidT2 == 0){
         printf("pid T2 is runnig!!!\n");
-        if ((sockServ = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
-            DieWithError("sockT2() failed:");
+        if ((sockServ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+            DieWithError("sockT2() failed");
 
         memset(&servAddr, 0, sizeof(servAddr));
         servAddr.sin_family = AF_INET;
-        servAddr.sin_addr.s_addr = inet_addr(INADDR_ANY);
+        servAddr.sin_addr.s_addr = inet_addr(servIP);
         servAddr.sin_port = htons(TCPportT2);
 
         if (bind(sockServ, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
             DieWithError("bindT2() failed:");
         
         if (listen(sockServ, MAXPENDING) < 0)  
-            DieWithError("listenT2() failed:");
+            DieWithError("listenT2() failed");
 
         while (1)
         {
             clntLen = sizeof(clntAddr);
             if ((sockClient = accept(sockServ, (struct sockaddr *) &clntAddr, &clntLen)) < 0)
-                DieWithError("acceptT2() failed:");
+                DieWithError("acceptT2() failed");
 
             if(q.msg_qnum > 0){
+                Msg msg;
+
                 int len = sizeof(msg) - sizeof(long);
                 int rc;
 
                 if ((rc = msgrcv(msqid, &msg, len, 0, 0)) < 0)
-                    DieWithError("msgrcv() failed\n");
+                    DieWithError("msgrcv() failed");
 
-                if (recv(sockClient, &msg, sizeof(msg), 0) < 0)
-                    DieWithError("recvT2() failed:");
+                if (send(sockClient, &msg, sizeof(msg), 0) < 0)
+                    DieWithError("recvT2() failed");
             }
             close(sockClient);
         }
@@ -218,11 +224,11 @@ int main(int argc, char *argv[]){
     if ((msqid = msgget(key, 0666 | IPC_CREAT)) < 0)
         DieWithError("msgget() failed");
     
-    TCPHandleT1(msqid);
-
     BroadcastClientT1();
-    
+
     BroadcastClientT2();
+
+    TCPHandleT1(msqid);
     
     TCPHandleT2(msqid);
 

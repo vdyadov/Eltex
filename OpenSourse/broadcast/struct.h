@@ -1,4 +1,4 @@
-#define MAXPENDING 128
+#define MAXPENDING 15
 #define MAX_LEN 1024
 
 #define MAX_WAIT_TIME 15

@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
             
             memset(&TCPServAddr, 0, sizeof(TCPServAddr));     /* Zero out structure */
             TCPServAddr.sin_family      = AF_INET;             /* Internet address family */
-            TCPServAddr.sin_addr.s_addr = htonl(INADDR_ANY);   /* Server IP address */
+            TCPServAddr.sin_addr.s_addr = inet_addr(servIP);   /* Server IP address */
             TCPServAddr.sin_port        = htons(TCPportT2);    /* Server port */
 
             /* Create a reliable, stream socket using TCP */
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
             /* Send the string to the server */
             if ((recvBytes = recv(TCPsock, &msg, sizeof(msg), 0)) != sizeof(msg))
-                DieWithError("send() sent a different number of bytes than expected");
+                DieWithError("recv() failed");
 
             printf("Recived a massage: %s\n", msg.text);
 
