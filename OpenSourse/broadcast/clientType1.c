@@ -78,12 +78,8 @@ int main(int argc, char *argv[])
 
             Msg msg = msgGen();    
 
-            char str[5] = "hello";
-
-            printf("%s\n", str);
-
             /* Send the string to the server */
-            if (send(TCPsock, str, strlen(str), 0) != strlen(str))
+            if (send(TCPsock, &msg, sizeof(msg), 0) != sizeof(msg)
                 DieWithError("send() sent a different number of bytes than expected");
             else
                 printf("send a message\n");
