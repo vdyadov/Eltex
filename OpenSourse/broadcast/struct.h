@@ -24,16 +24,3 @@ typedef struct mymsg
     char text[MAX_LEN + 1];
 } Msg;
 
-typedef struct node
-{
-    struct node *next;
-    Msg unit;
-} Node;
-
-typedef struct queue
-{
-    Node *head;
-    Node *tail;
-    int size;
-} Queue;
-
