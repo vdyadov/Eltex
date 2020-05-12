@@ -2,8 +2,8 @@
 #define MAX_LEN 1024
 
 #define MAX_WAIT_TIME 15
-#define WAIT_TIME_BROADCAST_T1 10
-#define WAIT_TIME_BROADCAST_T2 7
+#define WAIT_TIME_BROADCAST_T1 5
+#define WAIT_TIME_BROADCAST_T2 3
 
 #define BroadcastPortT1 5000
 #define BroadcastPortT2 5500
@@ -21,7 +21,7 @@ typedef struct mymsg
 {
     int T;
     int len;
-    char *text;
+    char text[MAX_LEN + 1];
 } Msg;
 
 typedef struct node

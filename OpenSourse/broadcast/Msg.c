@@ -7,11 +7,9 @@ Msg msgGen()
 {
     Msg msg;
 
-    msg.len = rand() % (MAX_LEN - 1);
+    msg.len = rand() % (MAX_LEN);
 
     msg.T = rand() % MAX_WAIT_TIME;
-
-    msg.text = (char *)malloc(msg.len * sizeof(char));
 
     for (int i = 0; i < msg.len; i++)
         msg.text[i] = 20 + rand() % MAX_LEN;
