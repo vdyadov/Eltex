@@ -57,24 +57,28 @@ int main(int argc, char *argv[])
             int recvBytes;
             Msg msg;
             
-            memset(&TCPServAddr, 0, sizeof(TCPServAddr));     /* Zero out structure */
-            TCPServAddr.sin_family      = AF_INET;             /* Internet address family */
-            TCPServAddr.sin_addr.s_addr = inet_addr(servIP);   /* Server IP address */
-            TCPServAddr.sin_port        = htons(TCPportT2);    /* Server port */
+            
 
             /* Create a reliable, stream socket using TCP */
             if ((TCPsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
                 DieWithError("socket() failed");
+
+            memset(&TCPServAddr, 0, sizeof(TCPServAddr));     /* Zero out structure */
+            TCPServAddr.sin_family      = AF_INET;             /* Internet address family */
+            TCPServAddr.sin_addr.s_addr = htonl(INADDR_ANY);   /* Server IP address */
+            TCPServAddr.sin_port        = htons(TCPportT2);    /* Server port */
 
             /* Establish the connection to the echo server */
             if (connect(TCPsock, (struct sockaddr *) &TCPServAddr, sizeof(TCPServAddr)) < 0)
                 DieWithError("connect() failed");
 
             /* Send the string to the server */
-            if ((recvBytes = recv(TCPsock, &msg, sizeof(msg), 0)) != sizeof(msg))
+            if ((recvBytes = recv(TCPsock, &msg, sizeof(msg), 0)) < 0)
                 DieWithError("recv() failed");
 
-            printf("Recived a massage: %s\n", msg.text);
+            printf("text: %s\n", msg.text);
+            printf("len: %d\n", msg.len);
+            printf("T: %d\n", msg.T);
 
             close(TCPsock);
 

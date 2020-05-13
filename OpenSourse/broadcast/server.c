@@ -7,11 +7,11 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/msg.h>
+#include <sys/ipc.h>
 
 #include "struct.h"
 
 struct msqid_ds q;
-// Msg msg;
 
 int status = 2;
 
@@ -145,14 +145,21 @@ void TCPHandleT1(int msqid){
             {
                 Msg msg;
 
-                if ((bytesRecv = recv(sockClient, &msg, sizeof(Msg), 0)) < 0)
+                if ((bytesRecv = recv(sockClient, &msg, sizeof(msg), 0)) < 0)
                     DieWithError("recvT1() failed:");
+                else
+                    printf("message received\n");
+                
 
-                int len = sizeof(msg) - sizeof(long);
-                int snd;
+                printf("text: %s\n", msg.text);
+                printf("len: %d\n", msg.len);
+                printf("Time: %d\n", msg.T);
 
-                if ((snd = msgsnd(msqid, &msg, len, 0)) < 0)
-                    DieWithError("msgsnd() failed\n");
+                // int len = sizeof(msg) /* - sizeof(long) */;
+                // int snd;
+
+                // if ((snd = msgsnd(msqid, &msg, len, 0)) < 0)
+                //     DieWithError("msgsnd() failed\n");
                 
             }
             close(sockClient);
@@ -187,7 +194,7 @@ void TCPHandleT2(int msqid){
             DieWithError("bindT2() failed:");
         
         if (listen(sockServ, MAXPENDING) < 0)  
-            DieWithError("listenT2() failed");
+            DieWithError("listenT2() failed");  
 
         while (1)
         {
@@ -198,14 +205,18 @@ void TCPHandleT2(int msqid){
             if(q.msg_qnum > 0){
                 Msg msg;
 
-                int len = sizeof(msg) - sizeof(long);
-                int rc;
+                // int len = sizeof(msg) - sizeof(long);
+                // int rc;
 
-                if ((rc = msgrcv(msqid, &msg, len, 0, 0)) < 0)
-                    DieWithError("msgrcv() failed");
+                // if ((rc = msgrcv(msqid, &msg, len, 0, 0)) < 0)
+                //     DieWithError("msgrcv() failed");
 
-                if (send(sockClient, &msg, sizeof(msg), 0) < 0)
-                    DieWithError("recvT2() failed");
+                // printf("text: %s\n", msg.text);
+                // printf("len: %d\n", msg.len);
+                // printf("Time: %d\n", msg.T);
+
+                if (send(sockClient, &msg, sizeof(msg), 0) != sizeof(msg))
+                    DieWithError("sendT2() failed");
             }
             close(sockClient);
         }
@@ -224,13 +235,13 @@ int main(int argc, char *argv[]){
     if ((msqid = msgget(key, 0666 | IPC_CREAT)) < 0)
         DieWithError("msgget() failed");
     
-    BroadcastClientT1();
-
-    BroadcastClientT2();
-
     TCPHandleT1(msqid);
     
     TCPHandleT2(msqid);
+
+    BroadcastClientT1();
+
+    BroadcastClientT2();
 
     waitpid(pidB1, &status, 0);
     if (WIFEXITED(status))

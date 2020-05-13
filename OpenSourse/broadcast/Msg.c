@@ -3,7 +3,7 @@
 
 #include "struct.h"
 
-Msg msgGen()
+Msg msgGen()      
 {
     Msg msg;
 
@@ -12,12 +12,12 @@ Msg msgGen()
     msg.T = rand() % MAX_WAIT_TIME;
 
     for (int i = 0; i < msg.len; i++)
-        msg.text[i] = 20 + rand() % MAX_LEN;
+        msg.text[i] = 65 + rand() % 60;
 
     msg.text[msg.len] = '\0';
 
     return msg;
-}
+}         
 
 void DieWithError(char *errorMessage)
 {
