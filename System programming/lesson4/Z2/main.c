@@ -73,9 +73,8 @@ int main(int argc, char **argv){
                 if((fp = fopen(fpath, "r")) == NULL){
                     printf("Файл не открыт\n");
                     exit(1);
-                }else{
+                }else
                     printf("Файл открыт\n");
-                }
                 
                 int ctr = 0;
                 char s;

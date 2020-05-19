@@ -20,13 +20,12 @@ int main(int argc, char **argv){
 
     int size = sizeof(int) * (m_s * m_s); //размер области разделяемой памяти
     if ((key = ftok(".", 'S')) < 0){
-        perror("Неврзможно создать ключ");
+        perror("Невозможно создать ключ");
         exit(1);
     }
     /* создаем область разделяемой памяти */
     if ((shmid = shmget(key, size, IPC_CREAT|0666)) < 0){
-        // perror("shmget");
-        printf("hui");
+        perror("shmget");
         exit(1);
     }
     /* Получаем доступ к разделяемой памяти */

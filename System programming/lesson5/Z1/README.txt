@@ -6,6 +6,6 @@
 
 ~$ make
 
-~$ ./run Hello it's worked
+~$ ./run Hello it works
 
 ~$ make clean (Удаление исполняемых файлов)
