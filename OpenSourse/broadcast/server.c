@@ -7,7 +7,6 @@
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <sys/msg.h>
-#include <sys/ipc.h>
 
 #include "struct.h"
 
@@ -19,7 +18,7 @@ pid_t pidB1, pidB2, pidT1, pidT2;
 
 void DieWithError(char *errorMessage);
 
-void BroadcastClientT1(){
+void BroadcastClientT1(int msqid){
     int sock, broadcastPermission;
     struct sockaddr_in servAddr;
 
@@ -40,21 +39,24 @@ void BroadcastClientT1(){
             DieWithError("setsockopt() failed");
 
         memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family = AF_INET;
+        servAddr.sin_family      = AF_INET;
         servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port = htons(BroadcastPortT1);
+        servAddr.sin_port        = htons(BroadcastPortT1);
 
         while (1)
         {
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+                DieWithError("msgctlT1() failed");
+                
             int size = q.msg_qnum;
 
-            printf("Queue size b1: %d\n", size);
+            if (size < MAX_SIZE_QUEUE){
+                printf("Queue size B1: %d\n", size);
 
-            if (size < MAX_SIZE_QUEUE)
                 if (sendto(sock, MESSAGE_T1, strlen(MESSAGE_T1), 0, (struct sockaddr *)
                  &servAddr, sizeof(servAddr)) != strlen(MESSAGE_T1))
                     DieWithError("sendB1() failed: ");
-
+            }
             sleep(WAIT_TIME_BROADCAST_T1);            
         }
         close(sock); 
@@ -62,7 +64,7 @@ void BroadcastClientT1(){
     }
 }
 
-void BroadcastClientT2(){
+void BroadcastClientT2(int msqid){
     int sock, broadcastPermission;
     struct sockaddr_in servAddr;
 
@@ -83,28 +85,29 @@ void BroadcastClientT2(){
             DieWithError("setsockopt() failed");
     
         memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family = AF_INET;
+        servAddr.sin_family      = AF_INET;
         servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port = htons(BroadcastPortT2);
+        servAddr.sin_port        = htons(BroadcastPortT2);
 
         while (1)
         {
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+                DieWithError("msgctlT1() failed");
+
             int size = q.msg_qnum;
 
-            printf("Queue size b2: %d\n", size);
+            if (size > 0){
+                printf("Queue size B2: %d\n", size);
 
-            if (size > 0)
                 if(sendto(sock, MESSAGE_T2, strlen(MESSAGE_T2), 0, (struct sockaddr *)
                  &servAddr, sizeof(servAddr)) != strlen(MESSAGE_T2))
                     DieWithError("sendB2() failed:");
-            
+            }
             sleep(WAIT_TIME_BROADCAST_T2);
         }
         close(sock);
         exit(status);
     }
-    
-    
 }
 
 void TCPHandleT1(int msqid){
@@ -125,9 +128,9 @@ void TCPHandleT1(int msqid){
             DieWithError("sockServT1() failed:");
     
         memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family = AF_INET;
+        servAddr.sin_family      = AF_INET;
         servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port = htons(TCPportT1);
+        servAddr.sin_port        = htons(TCPportT1);
 
         if (bind(sockServ, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
             DieWithError("bindT1() failed:");
@@ -140,34 +143,28 @@ void TCPHandleT1(int msqid){
             clntLen = sizeof((clientAddr));
             if ((sockClient = accept(sockServ, (struct sockaddr *) &clientAddr, &clntLen)) < 0)
                 DieWithError("aceptT1() failed:");
-            
+
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+                DieWithError("msgctlT1() failed");
+
             if (q.msg_qnum < MAX_SIZE_QUEUE)
             {
                 Msg msg;
 
-                if ((bytesRecv = recv(sockClient, &msg, sizeof(msg), 0)) < 0)
+                if ((bytesRecv = recv(sockClient, &msg, sizeof(Msg), 0)) < 0)   /* received message from socket */
                     DieWithError("recvT1() failed:");
-                else
-                    printf("message received\n");
-                
 
-                printf("text: %s\n", msg.text);
-                printf("len: %d\n", msg.len);
-                printf("Time: %d\n", msg.T);
+                int len = sizeof(msg) - sizeof(long);
+                int snd;
 
-                // int len = sizeof(msg) /* - sizeof(long) */;
-                // int snd;
-
-                // if ((snd = msgsnd(msqid, &msg, len, 0)) < 0)
-                //     DieWithError("msgsnd() failed\n");
-                
+                if ((snd = msgsnd(msqid, &msg, len, 0)) < 0)   /* send message to queue */
+                    DieWithError("msgsnd() failed\n");
             }
             close(sockClient);
         }
         close(sockServ);  
         exit(status);      
     }
-    
 }
 
 void TCPHandleT2(int msqid){
@@ -186,15 +183,15 @@ void TCPHandleT2(int msqid){
             DieWithError("sockT2() failed");
 
         memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family = AF_INET;
+        servAddr.sin_family      = AF_INET;
         servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port = htons(TCPportT2);
+        servAddr.sin_port        = htons(TCPportT2);
 
         if (bind(sockServ, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
             DieWithError("bindT2() failed:");
         
         if (listen(sockServ, MAXPENDING) < 0)  
-            DieWithError("listenT2() failed");  
+            DieWithError("listenT2() failed");
 
         while (1)
         {
@@ -202,21 +199,20 @@ void TCPHandleT2(int msqid){
             if ((sockClient = accept(sockServ, (struct sockaddr *) &clntAddr, &clntLen)) < 0)
                 DieWithError("acceptT2() failed");
 
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+                DieWithError("msgctlT2() failed");
+
             if(q.msg_qnum > 0){
                 Msg msg;
 
-                // int len = sizeof(msg) - sizeof(long);
-                // int rc;
+                int len = sizeof(msg) - sizeof(long);
+                int rc;
 
-                // if ((rc = msgrcv(msqid, &msg, len, 0, 0)) < 0)
-                //     DieWithError("msgrcv() failed");
+                if ((rc = msgrcv(msqid, &msg, len, 1, 0)) < 0)   /* received message from queue */
+                    DieWithError("msgrcv() failed");
 
-                // printf("text: %s\n", msg.text);
-                // printf("len: %d\n", msg.len);
-                // printf("Time: %d\n", msg.T);
-
-                if (send(sockClient, &msg, sizeof(msg), 0) != sizeof(msg))
-                    DieWithError("sendT2() failed");
+                if (send(sockClient, &msg, sizeof(Msg), 0) != sizeof(Msg))   /* send message to clientT2 */
+                    DieWithError("recvT2() failed");
             }
             close(sockClient);
         }
@@ -232,36 +228,35 @@ int main(int argc, char *argv[]){
     if ((key = ftok(".", 'S')) < 0)
         DieWithError("ftok() failed");
     
-    if ((msqid = msgget(key, 0666 | IPC_CREAT)) < 0)
+    if ((msqid = msgget(key, 0666 | IPC_CREAT)) < 0)    
         DieWithError("msgget() failed");
-    
+
     TCPHandleT1(msqid);
     
     TCPHandleT2(msqid);
 
-    BroadcastClientT1();
+    BroadcastClientT1(msqid);
 
-    BroadcastClientT2();
-
-    waitpid(pidB1, &status, 0);
-    if (WIFEXITED(status))
-        printf("process is over, return: %d\n", status);
-
-    waitpid(pidB2, &status, 0);
-    if (WIFEXITED(status))
-        printf("process is over, return: %d\n", status);
+    BroadcastClientT2(msqid );
 
     waitpid(pidT1, &status, 0);
     if (WIFEXITED(status))
-        printf("process is over, return: %d\n", status);
+        printf("process T1 is over, return: %d\n", status);
 
     waitpid(pidT2, &status, 0);
     if (WIFEXITED(status))
-        printf("process is over, return: %d\n", status);
+        printf("process T2 is over, return: %d\n", status);
 
-    if (msgctl(msqid, IPC_RMID, NULL) < 0)
+    if (msgctl(msqid, IPC_RMID, 0) < 0)     /* Delete queue */
         DieWithError("msgctl() failed");
-    
+
+    waitpid(pidB1, &status, 0);
+    if (WIFEXITED(status))
+        printf("process B1 is over, return: %d\n", status);
+
+    waitpid(pidB2, &status, 0);
+    if (WIFEXITED(status))
+        printf("process B2 is over, return: %d\n", status);    
 
     return 0;
 }

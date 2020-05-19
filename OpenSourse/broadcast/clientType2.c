@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
         /* Construct the server address structure */
         memset(&UDPServAddr, 0, sizeof(UDPServAddr));     /* Zero out structure */
         UDPServAddr.sin_family      = AF_INET;             /* Internet address family */
-        UDPServAddr.sin_addr.s_addr = inet_addr(servIP);   /* Server IP address */
+        UDPServAddr.sin_addr.s_addr = htonl(INADDR_ANY);   /* Server IP address */
         UDPServAddr.sin_port        = htons(BroadcastPortT2);    /* Server port */
 
         /* Binding UDPsock */
@@ -57,29 +57,28 @@ int main(int argc, char *argv[])
             int recvBytes;
             Msg msg;
             
-            
-
-            /* Create a reliable, stream socket using TCP */
-            if ((TCPsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
-                DieWithError("socket() failed");
-
             memset(&TCPServAddr, 0, sizeof(TCPServAddr));     /* Zero out structure */
             TCPServAddr.sin_family      = AF_INET;             /* Internet address family */
             TCPServAddr.sin_addr.s_addr = htonl(INADDR_ANY);   /* Server IP address */
             TCPServAddr.sin_port        = htons(TCPportT2);    /* Server port */
 
+            /* Create a reliable, stream socket using TCP */
+            if ((TCPsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
+                DieWithError("socket() failed");
+
+            fflush(stdout);
+
             /* Establish the connection to the echo server */
             if (connect(TCPsock, (struct sockaddr *) &TCPServAddr, sizeof(TCPServAddr)) < 0)
                 DieWithError("connect() failed");
-
+            // printf("TCP connecting\n");
             /* Send the string to the server */
-            if ((recvBytes = recv(TCPsock, &msg, sizeof(msg), 0)) < 0)
+            if ((recvBytes = recv(TCPsock, &msg, sizeof(Msg), 0)) < 0)
                 DieWithError("recv() failed");
+            else 
+                printf("\nRecived a message: %s\n", msg.text);
 
-            printf("text: %s\n", msg.text);
-            printf("len: %d\n", msg.len);
-            printf("T: %d\n", msg.T);
-
+            // printf("message is received\n");
             close(TCPsock);
 
             sleep(msg.T);

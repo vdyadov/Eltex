@@ -3,9 +3,11 @@
 
 #include "struct.h"
 
-Msg msgGen()      
+Msg msgGen()
 {
     Msg msg;
+
+    msg.mtype = 1;
 
     msg.len = rand() % (MAX_LEN);
 
@@ -17,7 +19,7 @@ Msg msgGen()
     msg.text[msg.len] = '\0';
 
     return msg;
-}         
+}
 
 void DieWithError(char *errorMessage)
 {

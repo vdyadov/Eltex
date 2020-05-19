@@ -7,15 +7,15 @@
 
 #include "struct.h"
 
-void DieWithError(char *errorMessage);          /* Error handling function */        
-Msg msgGen();                                   /* Massage generator */
+void DieWithError(char *errorMessage);  /* Error handling function */
+Msg msgGen();                           /* Massage generator */
 
 int main(int argc, char *argv[])
 {
-    struct sockaddr_in UDPServAddr;   
-    char recvString[MAX_LEN + 1];     
-    int bytesRcvd;                     
-                                        
+    struct sockaddr_in UDPServAddr;   /* Echo server address */
+    char recvString[MAX_LEN + 1];     /* Buffer for echo string */
+    int bytesRcvd;                    /* Bytes read in single recv() 
+                                        and total bytes read */
 
     printf("Client1!\n");
 
@@ -33,12 +33,14 @@ int main(int argc, char *argv[])
             sizeof(broadcastPermission)) < 0)
             DieWithError("setsockopt() failed");
 
-        memset(&UDPServAddr, 0, sizeof(UDPServAddr));     
+        /* Construct the server address structure */
+        memset(&UDPServAddr, 0, sizeof(UDPServAddr));     /* Zero out structure */
         // printf("memset is ok\n");
-        UDPServAddr.sin_family      = AF_INET;             
-        UDPServAddr.sin_addr.s_addr = htonl(INADDR_ANY);   
-        UDPServAddr.sin_port        = htons(BroadcastPortT1);    
+        UDPServAddr.sin_family      = AF_INET;             /* Internet address family */
+        UDPServAddr.sin_addr.s_addr = htonl(INADDR_ANY);   /* Server IP address */
+        UDPServAddr.sin_port        = htons(BroadcastPortT1);    /* Server port */
 
+        /* Binding UDPsock */
         if (bind(UDPsock, (struct sockaddr *) &UDPServAddr, sizeof(UDPServAddr)) < 0)
             DieWithError("bind() failed");
         
@@ -61,27 +63,28 @@ int main(int argc, char *argv[])
             int TCPsock;
             struct sockaddr_in TCPServAddr;
 
-            memset(&TCPServAddr, 0, sizeof(TCPServAddr));     
-            TCPServAddr.sin_family      = AF_INET;             
-            TCPServAddr.sin_addr.s_addr = inet_addr(servIP);   
-            TCPServAddr.sin_port        = htons(TCPportT1);    
+            memset(&TCPServAddr, 0, sizeof(TCPServAddr));     /* Zero out structure */
+            TCPServAddr.sin_family      = AF_INET;             /* Internet address family */
+            TCPServAddr.sin_addr.s_addr = htonl(INADDR_ANY);   /* Server IP address */
+            TCPServAddr.sin_port        = htons(TCPportT1);    /* Server port */
 
+            /* Create a reliable, stream socket using TCP */
             if ((TCPsock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
                 DieWithError("socket() failed");
 
+            /* Establish the connection to the echo server */
             if (connect(TCPsock, (struct sockaddr *) &TCPServAddr, sizeof(TCPServAddr)) < 0)
                 DieWithError("connect() failed");
 
-            Msg msg = msgGen();      
+            Msg msg = msgGen();    
 
-            printf("text: %s\n", msg.text);
-            printf("len: %d\n", msg.len);
-            printf("Time: %d\n", msg.T);
+            printf("\nRecived a message: %s\n", msg.text);
 
-            if (send(TCPsock, &msg, sizeof(msg), 0) != sizeof(msg))   
-                DieWithError("send() failed");
-            else 
-                printf("message is sending\n");
+            /* Send the string to the server */
+            if (send(TCPsock, &msg, sizeof(Msg), 0) != sizeof(Msg))
+                DieWithError("send() sent a different number of bytes than expected");
+            else
+                printf("send a message\n");
 
             close(TCPsock);
 
