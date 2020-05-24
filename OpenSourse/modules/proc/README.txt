@@ -7,7 +7,7 @@ $ sudo su
 # insmod mymod.ko
 # echo "Hi, user!" > /proc/mymod
 # cat /proc/mymod
-# echo "Hi, user!" > /proc/mymod
+# echo "New line!" > /proc/mymod
 # cat /proc/mymod
 # rmmod mymode.ko
 # dmesg
