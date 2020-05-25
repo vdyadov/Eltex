@@ -2,16 +2,16 @@
 
 Тест модуля:
 
-$ make
-$ sudo su
-# insmod mymod.ko
-# echo "Hi, user!" > /proc/mymod
-# cat /proc/mymod
-# echo "New line!" > /proc/mymod
-# cat /proc/mymod
-# rmmod mymode.ko
-# dmesg
+~$ make
+~$ sudo su
+root# insmod mymod.ko
+root# echo "Hello, user!" > /proc/mymod
+root# cat /proc/mymod
+root# echo "New message!" > /proc/mymod
+root# cat /proc/mymod
+root# rmmod mymode.ko
+root# dmesg
 
 Отчистка:
 
-$ make clean
+~$ make clean
