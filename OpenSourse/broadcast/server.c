@@ -1,12 +1,12 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/socket.h>
-#include <sys/msg.h>
+#include <stdio.h>          /* for printf() and fprintf() */ 
+#include <stdlib.h>         /* for atoi() and exit() */
+#include <string.h>         /* for memset() */ 
+#include <unistd.h>         /* for close() */
+#include <arpa/inet.h>      /* for sockaddr_in and inet_addr() */
+#include <sys/types.h>      /* for key_t and pid_t */
+#include <sys/wait.h>       /* for waitpid() */
+#include <sys/socket.h>     /* for socket(), connect(), send(), and recv() */
+#include <sys/msg.h>        /* for msgget(), msgctl() */
 
 #include "struct.h"
 
@@ -16,43 +16,42 @@ int status = 2;
 
 pid_t pidB1, pidB2, pidT1, pidT2;
 
-void DieWithError(char *errorMessage);
-
 void BroadcastClientT1(int msqid){
-    int sock, broadcastPermission;
+    int sock;
     struct sockaddr_in servAddr;
 
-    pid_t pidB1 = fork();
+    pidB1 = fork();
 
     if (pidB1 == -1)
         DieWithError("forkB1() failed:");
     
     if (pidB1 == 0)
     {
-        printf("pid B1 is runnig!!!\n");
+        // printf("pid B1 is runnig!!!\n");
         if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
             DieWithError("socketB1() failed:");
 
-        broadcastPermission = 1;
+        const int broadcastPermission = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, 
             sizeof(broadcastPermission)) < 0)
             DieWithError("setsockopt() failed");
 
-        memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family      = AF_INET;
-        servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port        = htons(BroadcastPortT1);
+        memset(&servAddr, 0, sizeof(servAddr));               /* Zero out structure */
+        servAddr.sin_family      = AF_INET;                   /* Internet address family */
+        servAddr.sin_addr.s_addr = inet_addr(servIP);         /* Server IP address */
+        servAddr.sin_port        = htons(BroadcastPortT1);    /* Server port */
 
         while (1)
         {
-            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get size queue*/
                 DieWithError("msgctlT1() failed");
                 
             int size = q.msg_qnum;
 
             if (size < MAX_SIZE_QUEUE){
                 printf("Queue size B1: %d\n", size);
-
+                
+                /* send message to clientT2 */
                 if (sendto(sock, MESSAGE_T1, strlen(MESSAGE_T1), 0, (struct sockaddr *)
                  &servAddr, sizeof(servAddr)) != strlen(MESSAGE_T1))
                     DieWithError("sendB1() failed: ");
@@ -65,33 +64,33 @@ void BroadcastClientT1(int msqid){
 }
 
 void BroadcastClientT2(int msqid){
-    int sock, broadcastPermission;
+    int sock;
     struct sockaddr_in servAddr;
 
-    pid_t pidB2 = fork();
+    pidB2 = fork();
 
     if (pidB2 == -1)
         DieWithError("forkB2() failed:");
     
     if (pidB2 == 0)
     {
-        printf("pid B2 is runnig!!!\n");
+        // printf("pid B2 is runnig!!!\n");
         if ((sock = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0)
             DieWithError("sockB2() failed:");
 
-        broadcastPermission = 1;
+        const int broadcastPermission = 1;
         if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (void *) &broadcastPermission, 
             sizeof(broadcastPermission)) < 0)
             DieWithError("setsockopt() failed");
     
-        memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family      = AF_INET;
-        servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port        = htons(BroadcastPortT2);
+        memset(&servAddr, 0, sizeof(servAddr));             /* Zero out structure */
+        servAddr.sin_family      = AF_INET;                 /* Internet address family */
+        servAddr.sin_addr.s_addr = inet_addr(servIP);       /* Server IP address */
+        servAddr.sin_port        = htons(BroadcastPortT2);  /* Server port */
 
         while (1)
         {
-            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get size queue */
                 DieWithError("msgctlT1() failed");
 
             int size = q.msg_qnum;
@@ -99,6 +98,7 @@ void BroadcastClientT2(int msqid){
             if (size > 0){
                 printf("Queue size B2: %d\n", size);
 
+                /* send message to clientT2 */
                 if(sendto(sock, MESSAGE_T2, strlen(MESSAGE_T2), 0, (struct sockaddr *)
                  &servAddr, sizeof(servAddr)) != strlen(MESSAGE_T2))
                     DieWithError("sendB2() failed:");
@@ -111,26 +111,25 @@ void BroadcastClientT2(int msqid){
 }
 
 void TCPHandleT1(int msqid){
-    int sockServ, sockClient;
+    int sockServ, sockClient, bytesRecv;
     struct sockaddr_in servAddr, clientAddr;
-    int bytesRecv;
     unsigned int clntLen;
 
-    pid_t pidT1 = fork();
+    pidT1 = fork();
 
     if (pidT1 == -1)
         DieWithError("forkT1() failed:");
     
     if (pidT1 == 0)
     {
-        printf("pid T1 is runnig!!!\n");
+        // printf("pid T1 is runnig!!!\n");
         if((sockServ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
             DieWithError("sockServT1() failed:");
     
-        memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family      = AF_INET;
-        servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port        = htons(TCPportT1);
+        memset(&servAddr, 0, sizeof(servAddr));         /* Zero out structure */
+        servAddr.sin_family      = AF_INET;             /* Internet address family */
+        servAddr.sin_addr.s_addr = inet_addr(servIP);   /* Server IP address */
+        servAddr.sin_port        = htons(TCPportT1);    /* Server port */
 
         if (bind(sockServ, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
             DieWithError("bindT1() failed:");
@@ -144,20 +143,21 @@ void TCPHandleT1(int msqid){
             if ((sockClient = accept(sockServ, (struct sockaddr *) &clientAddr, &clntLen)) < 0)
                 DieWithError("aceptT1() failed:");
 
-            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get size queue */
                 DieWithError("msgctlT1() failed");
 
             if (q.msg_qnum < MAX_SIZE_QUEUE)
             {
                 Msg msg;
 
-                if ((bytesRecv = recv(sockClient, &msg, sizeof(Msg), 0)) < 0)   /* received message from socket */
+                /* received message from clientT1 */
+                if ((bytesRecv = recv(sockClient, &msg, sizeof(Msg), 0)) < 0)
                     DieWithError("recvT1() failed:");
 
                 int len = sizeof(msg) - sizeof(long);
-                int snd;
 
-                if ((snd = msgsnd(msqid, &msg, len, 0)) < 0)   /* send message to queue */
+                /* send message to queue */
+                if (msgsnd(msqid, &msg, len, 0) < 0)
                     DieWithError("msgsnd() failed\n");
             }
             close(sockClient);
@@ -172,20 +172,21 @@ void TCPHandleT2(int msqid){
     struct sockaddr_in servAddr, clntAddr;
     unsigned int clntLen;
 
-    pid_t pidT2 = fork();
+    pidT2 = fork();
 
     if (pidT2 == -1)
         DieWithError("forkT2() failed:");
 
-    if (pidT2 == 0){
-        printf("pid T2 is runnig!!!\n");
+    if (pidT2 == 0)
+    {
+        // printf("pid T2 is runnig!!!\n");
         if ((sockServ = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0)
             DieWithError("sockT2() failed");
 
-        memset(&servAddr, 0, sizeof(servAddr));
-        servAddr.sin_family      = AF_INET;
-        servAddr.sin_addr.s_addr = inet_addr(servIP);
-        servAddr.sin_port        = htons(TCPportT2);
+        memset(&servAddr, 0, sizeof(servAddr));         /* Zero out structure */
+        servAddr.sin_family      = AF_INET;             /* Internet address family */
+        servAddr.sin_addr.s_addr = inet_addr(servIP);   /* Server IP address */
+        servAddr.sin_port        = htons(TCPportT2);    /* Server port */ 
 
         if (bind(sockServ, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0)
             DieWithError("bindT2() failed:");
@@ -199,31 +200,32 @@ void TCPHandleT2(int msqid){
             if ((sockClient = accept(sockServ, (struct sockaddr *) &clntAddr, &clntLen)) < 0)
                 DieWithError("acceptT2() failed");
 
-            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get value msg_qnum*/
+            if (msgctl(msqid, IPC_STAT, &q) < 0)    /* get size queue */
                 DieWithError("msgctlT2() failed");
 
             if(q.msg_qnum > 0){
                 Msg msg;
 
                 int len = sizeof(msg) - sizeof(long);
-                int rc;
 
-                if ((rc = msgrcv(msqid, &msg, len, 1, 0)) < 0)   /* received message from queue */
+                /* received message from queue */
+                if (msgrcv(msqid, &msg, len, 1, 0) < 0)
                     DieWithError("msgrcv() failed");
 
-                if (send(sockClient, &msg, sizeof(Msg), 0) != sizeof(Msg))   /* send message to clientT2 */
+                /* send message to clientT2 */
+                if (send(sockClient, &msg, sizeof(Msg), 0) != sizeof(Msg))
                     DieWithError("recvT2() failed");
             }
             close(sockClient);
         }
         close(sockServ); 
         exit(status);       
-    }
-    
+    }   
 }
 
 int main(int argc, char *argv[]){
-    int key, msqid;
+    int msqid;
+    key_t key;
 
     if ((key = ftok(".", 'S')) < 0)
         DieWithError("ftok() failed");

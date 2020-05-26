@@ -11,7 +11,7 @@
 #define TCPportT2 5555
 
 #define MESSAGE_T1 "Waiting a massage"
-#define MESSAGE_T2 "Send a massage"
+#define MESSAGE_T2 "Have a massage"
 
 #define MAX_SIZE_QUEUE 5
 
@@ -24,3 +24,7 @@ typedef struct mymsgbuf
     int T;
     char text[MAX_LEN + 1];
 } Msg;
+
+void DieWithError(char *errorMessage);
+
+Msg msgGen();
