@@ -1,0 +1,8 @@
+syntax = "proto2"; 
+
+message TCPMessage {
+    required string text = 4;
+    required int64 type = 1;
+    required int32 len = 2;
+    required int32 T = 3;   
+}
